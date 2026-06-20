@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>26</java.version>
-		<spring-modulith.version>2.1.0</spring-modulith.version>
+		<spring-modulith.version>1.1.10</spring-modulith.version>
 	</properties>
 	<dependencies>
 		<dependency>
