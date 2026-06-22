@@ -1,6 +1,7 @@
 package com.hydroyura.eta.dictionary.domain.word;
 
 import com.hydroyura.eta.dictionary.api.word.PartOfSpeech;
+import com.hydroyura.eta.dictionary.api.word.WordId;
 import com.hydroyura.eta.dictionary.domain.word.exception.LastTranslationException;
 import org.junit.jupiter.api.Test;
 

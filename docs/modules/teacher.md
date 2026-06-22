@@ -5,36 +5,19 @@
 ## Составляющие
 
 ### Teacher (Entity)
-- `id` — скелет, будет дополнен при интеграции с Telegram.
+- `id`, `name`, `studentIds` (@Association Set<StudentId>)
 
 ## Use Cases
 
 | Use Case | Статус |
 |----------|--------|
+| `RegisterTeacher` | ✅ |
 | `CreateStudentWithDictionary` | ✅ |
 
-### CreateStudentWithDictionary
-Оркестрирует создание ученика вместе со словарём.
-
-```mermaid
-sequenceDiagram
-    participant T as Teacher
-    participant UC as TeacherUseCase
-    participant CD as CreateDictionary
-    participant CS as CreateStudent
-
-    T->>UC: execute(CreateStudentWithDictionaryCommand)
-    UC->>CD: execute(CreateDictionaryCommand)
-    CD-->>UC: DictionaryId
-    UC->>CS: execute(CreateStudentCommand)
-    CS-->>UC: StudentId
-    UC-->>T: StudentId
-```
-
-## Зависимости (Spring Modulith)
+## Зависимости
 ```java
 @ApplicationModule(allowedDependencies = {"dictionary", "student"})
 ```
 
-## Тесты (3/3)
-- TeacherTest (1), CreateStudentWithDictionaryUseCaseTest (2)
+## Тесты (5/5)
+TeacherTest (1), RegisterTeacherUseCaseTest (2), CreateStudentWithDictionaryUseCaseTest (2)

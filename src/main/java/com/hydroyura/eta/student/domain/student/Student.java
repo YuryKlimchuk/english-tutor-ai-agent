@@ -5,11 +5,11 @@ import com.hydroyura.eta.student.api.student.StudentId;
 import java.util.Objects;
 import lombok.Getter;
 import org.jmolecules.ddd.annotation.Association;
-import org.jmolecules.ddd.annotation.Entity;
+import org.jmolecules.ddd.annotation.AggregateRoot;
 import org.jmolecules.ddd.annotation.Identity;
 
 @Getter
-@Entity
+@AggregateRoot
 public class Student {
 
     @Identity

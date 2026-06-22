@@ -1,4 +1,4 @@
-package com.hydroyura.eta.dictionary.domain.word;
+package com.hydroyura.eta.dictionary.api.word;
 
 import java.util.Objects;
 import java.util.UUID;
