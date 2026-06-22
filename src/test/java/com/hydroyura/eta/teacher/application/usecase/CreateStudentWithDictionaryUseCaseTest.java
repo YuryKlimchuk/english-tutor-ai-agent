@@ -8,6 +8,7 @@ import com.hydroyura.eta.student.api.student.CreateStudentCommand;
 import com.hydroyura.eta.student.api.student.StudentId;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionaryCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
+import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,14 +39,16 @@ class CreateStudentWithDictionaryUseCaseTest {
     @Test
     void shouldCreateStudentAndAddToTeacher() {
         var teacherId = TeacherId.generate();
-        teacherRepository.save(Teacher.create(teacherId, "John"));
+        var teacher = com.hydroyura.eta.teacher.domain.teacher.Teacher.create(teacherId, "John");
+        teacher.getIdentifiers().put(com.hydroyura.eta.teacher.domain.teacher.IdentifierType.TELEGRAM, 123L);
+        teacherRepository.save(teacher);
 
         var cmd = new CreateStudentWithDictionaryCommand(teacherId, "Иван", "Словарь Ивана");
         var studentId = useCase.execute(cmd);
 
         assertThat(studentId).isNotNull();
-        var teacher = teacherRepository.findById(teacherId).orElseThrow();
-        assertThat(teacher.getStudentIds()).contains(studentId);
+        var savedTeacher = teacherRepository.findById(teacherId).orElseThrow();
+        assertThat(savedTeacher.getStudentIds()).contains(studentId);
     }
 
     @Test
@@ -64,5 +67,8 @@ class CreateStudentWithDictionaryUseCaseTest {
 
         @Override public Teacher save(Teacher t) { store.put(t.getId(), t); return t; }
         @Override public Optional<Teacher> findById(TeacherId id) { return Optional.ofNullable(store.get(id)); }
+        @Override public Optional<Teacher> findByIdentifier(IdentifierType type, Object value) {
+            return store.values().stream().filter(t -> value.equals(t.getIdentifiers().get(type))).findFirst();
+        }
     }
 }

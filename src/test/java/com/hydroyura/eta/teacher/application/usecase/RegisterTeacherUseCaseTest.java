@@ -2,6 +2,7 @@ package com.hydroyura.eta.teacher.application.usecase;
 
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacherCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
+import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,16 +28,17 @@ class RegisterTeacherUseCaseTest {
 
     @Test
     void shouldRegisterTeacher() {
-        var id = useCase.execute(new RegisterTeacherCommand("John"));
+        var id = useCase.execute(new RegisterTeacherCommand(123L, "John"));
 
         assertThat(id).isNotNull();
         var saved = repository.findById(id).orElseThrow();
         assertThat(saved.getName()).isEqualTo("John");
+        assertThat((Long) saved.getIdentifiers().get(IdentifierType.TELEGRAM)).isEqualTo(123L);
     }
 
     @Test
     void shouldRejectBlankName() {
-        assertThatThrownBy(() -> useCase.execute(new RegisterTeacherCommand("  ")))
+        assertThatThrownBy(() -> useCase.execute(new RegisterTeacherCommand(123L, "  ")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("blank");
     }
@@ -48,5 +50,8 @@ class RegisterTeacherUseCaseTest {
 
         @Override public Teacher save(Teacher t) { store.put(t.getId(), t); return t; }
         @Override public Optional<Teacher> findById(TeacherId id) { return Optional.ofNullable(store.get(id)); }
+        @Override public Optional<Teacher> findByIdentifier(IdentifierType type, Object value) {
+            return store.values().stream().filter(t -> value.equals(t.getIdentifiers().get(type))).findFirst();
+        }
     }
 }

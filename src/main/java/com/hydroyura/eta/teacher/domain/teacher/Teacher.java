@@ -18,6 +18,7 @@ public class Teacher {
     @Identity
     private TeacherId id;
     private String name;
+    private Identifiers identifiers;
     @Association
     private Set<StudentId> studentIds = new HashSet<>();
 
@@ -30,6 +31,7 @@ public class Teacher {
         var teacher = new Teacher();
         teacher.id = id;
         teacher.name = name;
+        teacher.identifiers = new Identifiers();
         return teacher;
     }
 
