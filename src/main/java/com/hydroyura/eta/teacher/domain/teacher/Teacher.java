@@ -1,6 +1,6 @@
-package com.hydroyura.eta.teacher.domain.model;
+package com.hydroyura.eta.teacher.domain.teacher;
 
-import com.hydroyura.eta.teacher.api.TeacherId;
+import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import java.util.Objects;
 import lombok.Getter;
 import org.jmolecules.ddd.annotation.Entity;

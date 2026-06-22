@@ -1,4 +1,4 @@
-package com.hydroyura.eta.teacher.api;
+package com.hydroyura.eta.teacher.api.teacher;
 
 import java.util.Objects;
 import java.util.UUID;
