@@ -1,0 +1,27 @@
+package com.hydroyura.eta.student.infrastructure.persistence;
+
+import com.hydroyura.eta.student.api.student.StudentId;
+import com.hydroyura.eta.student.domain.student.Student;
+import com.hydroyura.eta.student.domain.student.StudentRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Repository
+public class InMemoryStudentRepository implements StudentRepository {
+
+    private final Map<StudentId, Student> store = new ConcurrentHashMap<>();
+
+    @Override
+    public Student save(Student student) {
+        store.put(student.getId(), student);
+        return student;
+    }
+
+    @Override
+    public Optional<Student> findById(StudentId id) {
+        return Optional.ofNullable(store.get(id));
+    }
+}

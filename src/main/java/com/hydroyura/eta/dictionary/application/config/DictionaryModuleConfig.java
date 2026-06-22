@@ -1,8 +1,10 @@
 package com.hydroyura.eta.dictionary.application.config;
 
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordToDictionary;
+import com.hydroyura.eta.dictionary.api.dictionary.CreateDictionary;
 import com.hydroyura.eta.dictionary.application.config.properties.WordSpecificationSpringProperties;
 import com.hydroyura.eta.dictionary.application.usecase.AddWordToDictionaryUseCase;
+import com.hydroyura.eta.dictionary.application.usecase.CreateDictionaryUseCase;
 import com.hydroyura.eta.dictionary.domain.dictionary.DictionaryRepository;
 import com.hydroyura.eta.dictionary.domain.word.WordFactory;
 import com.hydroyura.eta.dictionary.domain.word.WordSpecificationConfig;
@@ -28,5 +30,10 @@ public class DictionaryModuleConfig {
     @Bean
     AddWordToDictionary addWordToDictionary(DictionaryRepository repository, WordFactory factory) {
         return new AddWordToDictionaryUseCase(repository, factory);
+    }
+
+    @Bean
+    CreateDictionary createDictionary(DictionaryRepository repository) {
+        return new CreateDictionaryUseCase(repository);
     }
 }
