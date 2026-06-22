@@ -30,6 +30,7 @@ public class InMemoryStudentRepository implements StudentRepository {
     public boolean existsByNameInIds(Set<StudentId> ids, String name) {
         return ids.stream()
             .map(store::get)
-            .anyMatch(s -> s != null && s.getName().equalsIgnoreCase(name));
+            .filter(java.util.Objects::nonNull)
+            .anyMatch(s -> s.getName().equalsIgnoreCase(name));
     }
 }

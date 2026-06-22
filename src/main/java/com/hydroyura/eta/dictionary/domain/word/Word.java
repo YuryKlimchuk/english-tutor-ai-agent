@@ -1,15 +1,24 @@
 package com.hydroyura.eta.dictionary.domain.word;
 
 import com.hydroyura.eta.dictionary.api.word.PartOfSpeech;
+import java.util.Objects;
 import com.hydroyura.eta.dictionary.api.word.WordId;
+import java.util.Objects;
 import com.hydroyura.eta.dictionary.domain.word.exception.LastTranslationException;
+import java.util.Objects;
 import lombok.AccessLevel;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import java.util.Objects;
 import lombok.Getter;
+import java.util.Objects;
 import org.jmolecules.ddd.annotation.Entity;
+import java.util.Objects;
 import org.jmolecules.ddd.annotation.Identity;
+import java.util.Objects;
 
 import java.util.Set;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -38,7 +47,8 @@ public final class Word {
     }
 
     public void addTranslation(String translation) {
-        if (translation == null || translation.isBlank()) {
+        Objects.requireNonNull(translation, "Translation must not be null");
+        if (translation.isBlank()) {
             throw new IllegalArgumentException("Translation must not be blank");
         }
         this.translations.add(translation);
@@ -52,9 +62,7 @@ public final class Word {
     }
 
     public void setPartOfSpeech(PartOfSpeech partOfSpeech) {
-        if (partOfSpeech == null) {
-            throw new IllegalArgumentException("PartOfSpeech must not be null");
-        }
+        Objects.requireNonNull(partOfSpeech, "PartOfSpeech must not be null");
         this.partOfSpeech = partOfSpeech;
     }
 }

@@ -1,14 +1,23 @@
 package com.hydroyura.eta.teacher.application.usecase;
 
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacher;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacherCommand;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
+import java.util.Objects;
 import com.hydroyura.eta.teacher.domain.teacher.Identifiers;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -18,7 +27,8 @@ public class RegisterTeacherUseCase implements RegisterTeacher {
 
     @Override
     public TeacherId execute(RegisterTeacherCommand cmd) {
-        if (cmd.name() == null || cmd.name().isBlank()) {
+        var name = Objects.requireNonNull(cmd.name(), "Name must not be null");
+        if (name.isBlank()) {
             throw new IllegalArgumentException("Name must not be blank");
         }
 

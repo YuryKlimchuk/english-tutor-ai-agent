@@ -1,14 +1,22 @@
 package com.hydroyura.eta.dictionary.domain.dictionary;
 
 import com.hydroyura.eta.dictionary.api.dictionary.DictionaryId;
+import java.util.Objects;
 import com.hydroyura.eta.dictionary.domain.dictionary.exception.WordAlreadyExistsException;
+import java.util.Objects;
 import com.hydroyura.eta.dictionary.domain.word.Word;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import java.util.Objects;
 import lombok.Getter;
+import java.util.Objects;
 import org.jmolecules.ddd.annotation.AggregateRoot;
+import java.util.Objects;
 import org.jmolecules.ddd.annotation.Identity;
+import java.util.Objects;
 
 import java.util.Set;
+import java.util.Objects;
 
 @Getter
 @AggregateRoot
@@ -21,9 +29,7 @@ public final class Dictionary {
     private String name;
 
     public void addWord(Word word) {
-        if (word == null) {
-            throw new IllegalArgumentException("Word must not be null");
-        }
+        Objects.requireNonNull(word, "Word must not be null");
         if (words.stream().anyMatch(w -> w.getValue().equalsIgnoreCase(word.getValue()))) {
             throw new WordAlreadyExistsException(word.getValue());
         }

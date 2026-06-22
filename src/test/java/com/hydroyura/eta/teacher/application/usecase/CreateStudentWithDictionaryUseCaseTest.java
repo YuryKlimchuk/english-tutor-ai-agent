@@ -7,6 +7,7 @@ import com.hydroyura.eta.student.api.student.CreateStudent;
 import com.hydroyura.eta.student.api.student.CreateStudentCommand;
 import com.hydroyura.eta.student.api.student.StudentId;
 import com.hydroyura.eta.student.api.student.StudentQuery;
+import com.hydroyura.eta.student.api.student.FindStudentByNameQuery;
 import com.hydroyura.eta.student.api.student.StudentExistsByNameQuery;
 import com.hydroyura.eta.student.domain.student.Student;
 import com.hydroyura.eta.student.domain.student.StudentRepository;
@@ -37,7 +38,16 @@ class CreateStudentWithDictionaryUseCaseTest {
     void setUp() {
         teacherRepository = new StubTeacherRepository();
         studentRepository = new StubStudentRepository();
-        studentQuery = query -> studentRepository.existsByNameInIds(query.studentIds(), query.name());
+        studentQuery = new StudentQuery() {
+            public boolean existsByName(StudentExistsByNameQuery q) {
+                return studentRepository.existsByNameInIds(q.studentIds(), q.name());
+            }
+            public Optional<StudentId> findByNameIn(FindStudentByNameQuery q) {
+                return q.studentIds().stream().map(studentRepository::findById)
+                    .flatMap(Optional::stream).filter(s -> s.getName().equalsIgnoreCase(q.name()))
+                    .map(Student::getId).findFirst();
+            }
+        };
 
         var createDictionary = (CreateDictionary) cmd -> DictionaryId.generate();
         var createStudent = (CreateStudent) cmd -> {

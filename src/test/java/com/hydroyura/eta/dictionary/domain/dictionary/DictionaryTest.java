@@ -61,6 +61,6 @@ class DictionaryTest {
         var dictionary = new Dictionary(DictionaryId.generate(), new HashSet<>(), "My Dictionary");
 
         assertThatThrownBy(() -> dictionary.addWord(null))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 }

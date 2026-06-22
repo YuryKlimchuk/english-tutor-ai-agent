@@ -8,6 +8,8 @@ import com.hydroyura.eta.teacher.api.teacher.FindTeacher;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import com.hydroyura.eta.student.api.lesson.StartLesson;
 import com.hydroyura.eta.student.api.lesson.StartLessonCommand;
+import com.hydroyura.eta.student.api.student.FindStudentByNameQuery;
+import com.hydroyura.eta.student.api.student.StudentQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
     private final CreateStudentWithDictionary createStudentWithDictionary;
     private final StartLesson startLesson;
     private final FindTeacher findTeacher;
+    private final StudentQuery studentQuery;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
@@ -32,7 +35,8 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         RegisterTeacher registerTeacher,
         CreateStudentWithDictionary createStudentWithDictionary,
         StartLesson startLesson,
-        FindTeacher findTeacher
+        FindTeacher findTeacher,
+        StudentQuery studentQuery
     ) {
         super(botToken);
         this.botUsername = botUsername;
@@ -40,6 +44,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         this.createStudentWithDictionary = createStudentWithDictionary;
         this.startLesson = startLesson;
         this.findTeacher = findTeacher;
+        this.studentQuery = studentQuery;
     }
 
     @Override
@@ -59,7 +64,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
 
         try {
             var response = handleCommand(chatId, text);
-            if (response != null) sendMessage(chatId, response);
+            if (java.util.Objects.nonNull(response)) sendMessage(chatId, response);
         } catch (Exception e) {
             log.error("Error", e);
             sendMessage(chatId, "❌ " + e.getMessage());
@@ -110,7 +115,17 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
     private String handleStartLesson(Long chatId, String text) {
         var teacherId = findTeacher.findByTelegramChatId(chatId);
         if (teacherId.isEmpty()) return "Register first: /register <name>";
-        return "Not implemented yet";
+
+        var parts = text.split(" ", 2);
+        if (parts.length < 2) return "Usage: /startlesson <student name>";
+
+        var studentName = parts[1].trim();
+        var studentIds = findTeacher.getStudentIds(chatId);
+        var studentId = studentQuery.findByNameIn(new FindStudentByNameQuery(studentIds, studentName));
+        if (studentId.isEmpty()) return "Student '" + studentName + "' not found. /newstudent to create.";
+
+        var lessonId = startLesson.execute(new StartLessonCommand(studentId.get(), "Lesson"));
+        return "✅ Lesson started! ID: " + lessonId.value();
     }
 
     private String helpText() {

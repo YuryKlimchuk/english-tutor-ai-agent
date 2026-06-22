@@ -74,7 +74,7 @@ class WordTest {
     void shouldNotSetNullPartOfSpeech() {
         var word = new Word(WordId.generate(), "apple", Set.of("яблоко"), PartOfSpeech.NOUN, 10, 0);
         assertThatThrownBy(() -> word.setPartOfSpeech(null))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
