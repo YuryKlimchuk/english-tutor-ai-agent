@@ -147,10 +147,8 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         translations.removeIf(String::isBlank);
 
         var dictId = studentQuery.getDictionaryId(studentId).orElseThrow();
-        addWordToDictionary.execute(new AddWordCommand(dictId, word, translations, pos));
-
-        // The dictionary use case creates a word but doesn't return the wordId.
-        // For simplicity: skip addWordToLesson for now, or find the word.
+        var wordId = addWordToDictionary.execute(new AddWordCommand(dictId, word, translations, pos));
+        addWordToLesson.execute(new AddWordToLessonCommand(lessonId, wordId));
         return "✅ Word \"" + word + "\" added";
     }
 

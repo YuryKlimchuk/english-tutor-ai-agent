@@ -2,6 +2,7 @@ package com.hydroyura.eta.dictionary.application.usecase;
 
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordCommand;
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordToDictionary;
+import com.hydroyura.eta.dictionary.api.word.WordId;
 import com.hydroyura.eta.dictionary.domain.dictionary.DictionaryRepository;
 import com.hydroyura.eta.dictionary.domain.dictionary.exception.DictionaryNotFoundException;
 import com.hydroyura.eta.dictionary.domain.word.WordFactory;
@@ -16,7 +17,7 @@ public class AddWordToDictionaryUseCase implements AddWordToDictionary {
     private final WordFactory wordFactory;
 
     @Override
-    public void execute(AddWordCommand cmd) {
+    public WordId execute(AddWordCommand cmd) {
         var dictionary = dictionaryRepository.findById(cmd.dictionaryId())
             .orElseThrow(() -> new DictionaryNotFoundException(cmd.dictionaryId()));
 
@@ -30,5 +31,6 @@ public class AddWordToDictionaryUseCase implements AddWordToDictionary {
         dictionaryRepository.save(dictionary);
 
         log.info("Word '{}' added to dictionary {}", cmd.value(), cmd.dictionaryId());
+        return word.getId();
     }
 }
