@@ -74,7 +74,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
     }
 
     private String handleCommand(Long chatId, String text) {
-        if (text.startsWith("/start")) return handleStart(chatId);
+        if (text.startsWith("/start") && text.equalsIgnoreCase("/start")) return handleStart(chatId);
         if (text.startsWith("/register")) return handleRegister(chatId, text);
         if (text.startsWith("/newstudent")) return handleNewStudent(chatId, text);
         if (text.startsWith("/startlesson")) return handleStartLesson(chatId, text);
