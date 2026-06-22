@@ -4,6 +4,7 @@ import com.hydroyura.eta.dictionary.api.dictionary.DictionaryId;
 import com.hydroyura.eta.student.api.student.StudentId;
 import java.util.Objects;
 import lombok.Getter;
+import org.jmolecules.ddd.annotation.Association;
 import org.jmolecules.ddd.annotation.Entity;
 import org.jmolecules.ddd.annotation.Identity;
 
@@ -13,6 +14,7 @@ public class Student {
 
     @Identity
     private StudentId id;
+    @Association
     private DictionaryId dictionaryId;
     private String name;
 

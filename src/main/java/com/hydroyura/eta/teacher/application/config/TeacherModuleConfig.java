@@ -22,9 +22,10 @@ public class TeacherModuleConfig {
 
     @Bean
     CreateStudentWithDictionary createStudentWithDictionary(
+        TeacherRepository teacherRepository,
         CreateDictionary createDictionary,
         CreateStudent createStudent
     ) {
-        return new CreateStudentWithDictionaryUseCase(createDictionary, createStudent);
+        return new CreateStudentWithDictionaryUseCase(teacherRepository, createDictionary, createStudent);
     }
 }
