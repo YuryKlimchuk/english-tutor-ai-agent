@@ -1,19 +1,6 @@
 package com.hydroyura.eta.telegram.infrastructure.bot;
 
-import com.hydroyura.eta.dictionary.api.dictionary.AddWordToDictionary;
-import com.hydroyura.eta.dictionary.api.dictionary.AddWordCommand;
-import com.hydroyura.eta.dictionary.api.word.PartOfSpeech;
-import com.hydroyura.eta.dictionary.api.word.WordId;
-import com.hydroyura.eta.student.api.lesson.EndLesson;
-import com.hydroyura.eta.student.api.lesson.EndLessonCommand;
-import com.hydroyura.eta.student.api.lesson.FindActiveLesson;
-import com.hydroyura.eta.student.api.lesson.StartLesson;
-import com.hydroyura.eta.student.api.lesson.StartLessonCommand;
-import com.hydroyura.eta.student.api.lesson.AddWordToLessonCommand;
-import com.hydroyura.eta.student.api.lesson.AddWordToLesson;
-import com.hydroyura.eta.student.api.lesson.LessonId;
-import com.hydroyura.eta.student.api.student.*;
-import com.hydroyura.eta.teacher.api.teacher.*;
+import com.hydroyura.eta.telegram.infrastructure.bot.statemachine.StateMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,47 +9,23 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
+import java.util.Objects;
 
 @Slf4j
 @Component
 public class EnglishTutorBot extends TelegramLongPollingBot {
 
     private final String botUsername;
-    private final RegisterTeacher registerTeacher;
-    private final CreateStudentWithDictionary createStudentWithDictionary;
-    private final StartLesson startLesson;
-    private final FindTeacher findTeacher;
-    private final StudentQuery studentQuery;
-    private final FindActiveLesson findActiveLesson;
-    private final AddWordToDictionary addWordToDictionary;
-    private final AddWordToLesson addWordToLesson;
-    private final EndLesson endLesson;
+    private final StateMachine stateMachine;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
         @Value("${telegram.bot.username}") String botUsername,
-        RegisterTeacher registerTeacher,
-        CreateStudentWithDictionary createStudentWithDictionary,
-        StartLesson startLesson,
-        FindTeacher findTeacher,
-        StudentQuery studentQuery,
-        FindActiveLesson findActiveLesson,
-        AddWordToDictionary addWordToDictionary,
-        AddWordToLesson addWordToLesson,
-        EndLesson endLesson
+        StateMachine stateMachine
     ) {
         super(botToken);
         this.botUsername = botUsername;
-        this.registerTeacher = registerTeacher;
-        this.createStudentWithDictionary = createStudentWithDictionary;
-        this.startLesson = startLesson;
-        this.findTeacher = findTeacher;
-        this.studentQuery = studentQuery;
-        this.findActiveLesson = findActiveLesson;
-        this.addWordToDictionary = addWordToDictionary;
-        this.addWordToLesson = addWordToLesson;
-        this.endLesson = endLesson;
+        this.stateMachine = stateMachine;
     }
 
     @Override public String getBotUsername() { return botUsername; }
@@ -74,108 +37,14 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         var chatId = msg.getChatId();
         var text = msg.getText().trim();
         log.info("[{}] {}", chatId, text);
+
         try {
-            var r = handleCommand(chatId, text);
-            if (Objects.nonNull(r)) sendMessage(chatId, r);
+            var response = stateMachine.process(chatId, text);
+            if (Objects.nonNull(response)) sendMessage(chatId, response);
         } catch (Exception e) {
             log.error("Error", e);
             sendMessage(chatId, "❌ " + e.getMessage());
         }
-    }
-
-    private String handleCommand(Long chatId, String text) {
-        if (text.startsWith("/start") && text.equalsIgnoreCase("/start")) return handleStart(chatId);
-        if (text.startsWith("/register")) return handleRegister(chatId, text);
-        if (text.startsWith("/newstudent")) return handleNewStudent(chatId, text);
-        if (text.startsWith("/startlesson")) return handleStartLesson(chatId, text);
-        if (text.startsWith("/add")) return handleAddWord(chatId, text);
-        if (text.equals("/endlesson")) return handleEndLesson(chatId);
-        if (text.equals("/help")) return helpText();
-        return "Unknown. /help";
-    }
-
-    private String handleStart(Long chatId) {
-        return findTeacher.findByTelegramChatId(chatId).isPresent()
-            ? "Welcome back! /newstudent, /startlesson"
-            : "Welcome! /register <name>";
-    }
-
-    private String handleRegister(Long chatId, String text) {
-        if (findTeacher.findByTelegramChatId(chatId).isPresent()) return "Already registered!";
-        var p = text.split(" ", 2);
-        if (p.length < 2) return "Usage: /register <name>";
-        registerTeacher.execute(new RegisterTeacherCommand(chatId, p[1].trim()));
-        return "✅ Registered! /newstudent <name>";
-    }
-
-    private String handleNewStudent(Long chatId, String text) {
-        var teacherId = findTeacher.findByTelegramChatId(chatId);
-        if (teacherId.isEmpty()) return "Register first: /register <name>";
-        var p = text.split(" ", 2);
-        if (p.length < 2) return "Usage: /newstudent <name>";
-        var name = p[1].trim();
-        createStudentWithDictionary.execute(new CreateStudentWithDictionaryCommand(teacherId.get(), name, name + "'s Dictionary"));
-        return "✅ Student " + name + " created";
-    }
-
-    private String handleStartLesson(Long chatId, String text) {
-        var teacherId = findTeacher.findByTelegramChatId(chatId);
-        if (teacherId.isEmpty()) return "Register first";
-        var p = text.split(" ", 2);
-        if (p.length < 2) return "Usage: /startlesson <student>";
-        var name = p[1].trim();
-        var ids = findTeacher.getStudentIds(chatId);
-        var sid = studentQuery.findByNameIn(new FindStudentByNameQuery(ids, name));
-        if (sid.isEmpty()) return "Student not found: " + name;
-        var lid = startLesson.execute(new StartLessonCommand(sid.get(), "Lesson"));
-        return "✅ Lesson started: " + lid.value();
-    }
-
-    private String handleAddWord(Long chatId, String text) {
-        var teacherId = findTeacher.findByTelegramChatId(chatId);
-        if (teacherId.isEmpty()) return "Register first";
-
-        // Find active lesson
-        var studentIds = findTeacher.getStudentIds(chatId);
-        LessonId lessonId = null;
-        StudentId studentId = null;
-        for (var sid : studentIds) {
-            var lid = findActiveLesson.findByStudentId(sid);
-            if (lid.isPresent()) { lessonId = lid.get(); studentId = sid; break; }
-        }
-        if (lessonId == null) return "No active lesson. /startlesson first";
-
-        // Parse: /add word POS trans1; trans2
-        var p = text.substring(5).trim().split(" ", 3);
-        if (p.length < 3) return "Usage: /add word POS translation1; translation2";
-
-        var word = p[0];
-        PartOfSpeech pos;
-        try { pos = PartOfSpeech.valueOf(p[1].toUpperCase()); }
-        catch (IllegalArgumentException e) { return "Invalid POS: " + p[1] + ". Use NOUN, VERB, ADJECTIVE"; }
-
-        var translations = new HashSet<>(Arrays.asList(p[2].split(";")));
-        translations.removeIf(String::isBlank);
-
-        var dictId = studentQuery.getDictionaryId(studentId).orElseThrow();
-        var wordId = addWordToDictionary.execute(new AddWordCommand(dictId, word, translations, pos));
-        addWordToLesson.execute(new AddWordToLessonCommand(lessonId, wordId));
-        return "✅ Word \"" + word + "\" added";
-    }
-
-    private String handleEndLesson(Long chatId) {
-        var teacherId = findTeacher.findByTelegramChatId(chatId);
-        if (teacherId.isEmpty()) return "Register first";
-        var studentIds = findTeacher.getStudentIds(chatId);
-        for (var sid : studentIds) {
-            var lid = findActiveLesson.findByStudentId(sid);
-            if (lid.isPresent()) { endLesson.execute(new EndLessonCommand(lid.get())); return "✅ Lesson ended"; }
-        }
-        return "No active lesson";
-    }
-
-    private String helpText() {
-        return "/register <name>, /newstudent <name>, /startlesson <name>, /add <word> <POS> <tr1; tr2>, /endlesson";
     }
 
     private void sendMessage(Long chatId, String text) {
