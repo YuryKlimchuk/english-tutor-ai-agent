@@ -59,5 +59,6 @@ class LessonUseCasesTest {
         private final Map<LessonId, Lesson> store = new HashMap<>();
         @Override public Lesson save(Lesson l) { store.put(l.getId(), l); return l; }
         @Override public Optional<Lesson> findById(LessonId id) { return Optional.ofNullable(store.get(id)); }
+        @Override public Optional<Lesson> findActiveByStudentId(StudentId sid) { return Optional.empty(); }
     }
 }

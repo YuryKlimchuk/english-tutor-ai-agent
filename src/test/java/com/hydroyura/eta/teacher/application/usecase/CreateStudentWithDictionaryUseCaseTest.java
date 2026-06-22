@@ -47,6 +47,9 @@ class CreateStudentWithDictionaryUseCaseTest {
                     .flatMap(Optional::stream).filter(s -> s.getName().equalsIgnoreCase(q.name()))
                     .map(Student::getId).findFirst();
             }
+            public Optional<com.hydroyura.eta.dictionary.api.dictionary.DictionaryId> getDictionaryId(StudentId sid) {
+                return studentRepository.findById(sid).map(Student::getDictionaryId);
+            }
         };
 
         var createDictionary = (CreateDictionary) cmd -> DictionaryId.generate();

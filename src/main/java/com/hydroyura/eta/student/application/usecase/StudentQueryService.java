@@ -1,5 +1,6 @@
 package com.hydroyura.eta.student.application.usecase;
 
+import com.hydroyura.eta.dictionary.api.dictionary.DictionaryId;
 import com.hydroyura.eta.student.api.student.FindStudentByNameQuery;
 import com.hydroyura.eta.student.api.student.StudentExistsByNameQuery;
 import com.hydroyura.eta.student.api.student.StudentId;
@@ -27,5 +28,11 @@ public class StudentQueryService implements StudentQuery {
             .filter(s -> s.getName().equalsIgnoreCase(query.name()))
             .map(s -> s.getId())
             .findFirst();
+    }
+
+    @Override
+    public Optional<DictionaryId> getDictionaryId(StudentId studentId) {
+        return studentRepository.findById(studentId)
+            .map(s -> s.getDictionaryId());
     }
 }

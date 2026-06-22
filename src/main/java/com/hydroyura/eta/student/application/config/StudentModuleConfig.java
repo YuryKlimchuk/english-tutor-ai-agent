@@ -1,6 +1,7 @@
 package com.hydroyura.eta.student.application.config;
 
 import com.hydroyura.eta.student.api.lesson.AddWordToLesson;
+import com.hydroyura.eta.student.api.lesson.FindActiveLesson;
 import com.hydroyura.eta.student.api.student.CreateStudent;
 import com.hydroyura.eta.student.api.lesson.EndLesson;
 import com.hydroyura.eta.student.api.lesson.StartLesson;
@@ -8,6 +9,7 @@ import com.hydroyura.eta.student.api.student.StudentQuery;
 import com.hydroyura.eta.student.application.usecase.AddWordToLessonUseCase;
 import com.hydroyura.eta.student.application.usecase.CreateStudentUseCase;
 import com.hydroyura.eta.student.application.usecase.EndLessonUseCase;
+import com.hydroyura.eta.student.application.usecase.FindActiveLessonService;
 import com.hydroyura.eta.student.application.usecase.StartLessonUseCase;
 import com.hydroyura.eta.student.application.usecase.StudentQueryService;
 import com.hydroyura.eta.student.domain.student.LessonRepository;
@@ -41,5 +43,10 @@ public class StudentModuleConfig {
     @Bean
     StudentQuery studentQuery(StudentRepository studentRepository) {
         return new StudentQueryService(studentRepository);
+    }
+
+    @Bean
+    FindActiveLesson findActiveLesson(LessonRepository lessonRepository) {
+        return new FindActiveLessonService(lessonRepository);
     }
 }
