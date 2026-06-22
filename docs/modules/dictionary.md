@@ -30,6 +30,9 @@ dictionary/
 │   │   └── WordSpecificationSpringProperties  # @ConfigurationProperties, impl WordSpecificationConfig
 │   └── usecase/
 │       └── AddWordToDictionaryUseCase         # implements AddWordToDictionary
+├── infrastructure/
+│   └── persistence/
+│       └── InMemoryDictionaryRepository
 ├── domain/
 │   ├── dictionary/
 │   │   ├── Dictionary            # @AggregateRoot
@@ -54,8 +57,35 @@ dictionary/
 
 ## Поток добавления слова
 
-```
-AddWordCommand → AddWordToDictionaryUseCase → WordFactory (валидация) → Dictionary.addWord (инварианты) → DictionaryRepository.save
+```mermaid
+sequenceDiagram
+    participant C as Caller
+    participant UC as AddWordToDictionaryUseCase
+    participant R as DictionaryRepository
+    participant F as WordFactory
+    participant S as WordSpecifications
+    participant D as Dictionary
+
+    C->>UC: execute(AddWordCommand)
+    UC->>R: findById(dictionaryId)
+    R-->>UC: Dictionary
+    alt not found
+        UC-->>C: DictionaryNotFoundException
+    end
+    UC->>F: create(value, translations, partOfSpeech)
+    F->>F: new Word(id, value, translations, pos, target, 0)
+    F->>S: validForCreation().isSatisfiedBy(word)
+    alt invalid
+        F-->>UC: WordValidationException
+    end
+    F-->>UC: Word
+    UC->>D: addWord(word)
+    alt duplicate
+        D-->>UC: WordAlreadyExistsException
+    end
+    UC->>R: save(dictionary)
+    R-->>UC: saved Dictionary
+    UC-->>C: ok
 ```
 
 `targetRepetitions` берётся из конфига (`WordSpecificationConfig.defaultTargetRepetitions()`), не из команды.
@@ -86,9 +116,29 @@ shared/api/DomainException (abstract)
 
 Параметры берутся из `WordSpecificationConfig` (интерфейс в домене, реализация — `WordSpecificationSpringProperties` в application).
 
-## Тесты (32/32)
+## Инфраструктура
+
+```
+infrastructure/persistence/
+└── InMemoryDictionaryRepository    # @Repository, ConcurrentHashMap
+```
+
+Реализация DictionaryRepository в памяти. Будет заменена на JPA при добавлении persistence-слоя.
+
+## Spring Wiring
+
+```
+DictionaryModuleConfig (@Configuration)
+├── @EnableConfigurationProperties(WordSpecificationSpringProperties)
+├── WordSpecifications         ← WordSpecificationConfig
+├── WordFactory                ← WordSpecifications + WordSpecificationConfig
+└── AddWordToDictionary        ← DictionaryRepository + WordFactory
+```
+
+## Тесты (37/37)
 - WordTest (11) — статус, переводы, часть речи
 - WordSpecificationsTest (10) — все правила + edge cases
 - WordFactoryTest (5) — создание, дефолты, rejects
 - DictionaryTest (3) — addWord, дубликат, null
 - AddWordToDictionaryUseCaseTest (3) — success, not found, duplicate
+- DictionaryModuleConfigTest (5) — wiring, properties, factory, use case full flow
