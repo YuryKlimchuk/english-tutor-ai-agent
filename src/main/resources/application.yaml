@@ -1,3 +1,8 @@
 spring:
   application:
     name: eta
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}
+    username: eta_tutor_bot
