@@ -29,7 +29,7 @@ public class InMemoryTeacherRepository implements TeacherRepository {
     @Override
     public Optional<Teacher> findByIdentifier(IdentifierType type, Object value) {
         return store.values().stream()
-            .filter(t -> value.equals(t.getIdentifiers().get(type)))
+            .filter(t -> java.util.Objects.equals(value, t.getIdentifiers().get(type)))
             .findFirst();
     }
 }

@@ -30,7 +30,7 @@ public class InMemoryLessonRepository implements LessonRepository {
     @Override
     public Optional<Lesson> findActiveByStudentId(StudentId studentId) {
         return store.values().stream()
-            .filter(l -> l.getStudentId().equals(studentId))
+            .filter(l -> java.util.Objects.equals(l.getStudentId(), studentId))
             .filter(l -> l.getStatus() == LessonStatus.ACTIVE)
             .findFirst();
     }

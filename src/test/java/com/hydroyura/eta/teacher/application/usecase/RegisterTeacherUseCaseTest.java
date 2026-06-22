@@ -51,7 +51,7 @@ class RegisterTeacherUseCaseTest {
         @Override public Teacher save(Teacher t) { store.put(t.getId(), t); return t; }
         @Override public Optional<Teacher> findById(TeacherId id) { return Optional.ofNullable(store.get(id)); }
         @Override public Optional<Teacher> findByIdentifier(IdentifierType type, Object value) {
-            return store.values().stream().filter(t -> value.equals(t.getIdentifiers().get(type))).findFirst();
+            return store.values().stream().filter(t -> java.util.Objects.equals(value, t.getIdentifiers().get(type))).findFirst();
         }
     }
 }
