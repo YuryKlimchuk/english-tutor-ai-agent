@@ -4,7 +4,14 @@ import com.hydroyura.eta.dictionary.api.dictionary.AddWordToDictionary;
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordCommand;
 import com.hydroyura.eta.dictionary.api.word.PartOfSpeech;
 import com.hydroyura.eta.dictionary.api.word.WordId;
-import com.hydroyura.eta.student.api.lesson.*;
+import com.hydroyura.eta.student.api.lesson.EndLesson;
+import com.hydroyura.eta.student.api.lesson.EndLessonCommand;
+import com.hydroyura.eta.student.api.lesson.FindActiveLesson;
+import com.hydroyura.eta.student.api.lesson.StartLesson;
+import com.hydroyura.eta.student.api.lesson.StartLessonCommand;
+import com.hydroyura.eta.student.api.lesson.AddWordToLessonCommand;
+import com.hydroyura.eta.student.api.lesson.AddWordToLesson;
+import com.hydroyura.eta.student.api.lesson.LessonId;
 import com.hydroyura.eta.student.api.student.*;
 import com.hydroyura.eta.teacher.api.teacher.*;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +37,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
     private final FindActiveLesson findActiveLesson;
     private final AddWordToDictionary addWordToDictionary;
     private final AddWordToLesson addWordToLesson;
+    private final EndLesson endLesson;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
@@ -41,7 +49,8 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         StudentQuery studentQuery,
         FindActiveLesson findActiveLesson,
         AddWordToDictionary addWordToDictionary,
-        AddWordToLesson addWordToLesson
+        AddWordToLesson addWordToLesson,
+        EndLesson endLesson
     ) {
         super(botToken);
         this.botUsername = botUsername;
@@ -53,6 +62,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         this.findActiveLesson = findActiveLesson;
         this.addWordToDictionary = addWordToDictionary;
         this.addWordToLesson = addWordToLesson;
+        this.endLesson = endLesson;
     }
 
     @Override public String getBotUsername() { return botUsername; }
@@ -79,6 +89,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         if (text.startsWith("/newstudent")) return handleNewStudent(chatId, text);
         if (text.startsWith("/startlesson")) return handleStartLesson(chatId, text);
         if (text.startsWith("/add")) return handleAddWord(chatId, text);
+        if (text.equals("/endlesson")) return handleEndLesson(chatId);
         if (text.equals("/help")) return helpText();
         return "Unknown. /help";
     }
@@ -152,8 +163,19 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         return "✅ Word \"" + word + "\" added";
     }
 
+    private String handleEndLesson(Long chatId) {
+        var teacherId = findTeacher.findByTelegramChatId(chatId);
+        if (teacherId.isEmpty()) return "Register first";
+        var studentIds = findTeacher.getStudentIds(chatId);
+        for (var sid : studentIds) {
+            var lid = findActiveLesson.findByStudentId(sid);
+            if (lid.isPresent()) { endLesson.execute(new EndLessonCommand(lid.get())); return "✅ Lesson ended"; }
+        }
+        return "No active lesson";
+    }
+
     private String helpText() {
-        return "/register <name>, /newstudent <name>, /startlesson <name>, /add <word> <POS> <tr1; tr2>";
+        return "/register <name>, /newstudent <name>, /startlesson <name>, /add <word> <POS> <tr1; tr2>, /endlesson";
     }
 
     private void sendMessage(Long chatId, String text) {

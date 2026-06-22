@@ -2,29 +2,25 @@
 
 Адаптер для Telegram бота. Принимает команды от учителя и делегирует доменным use case'ам.
 
-## Составляющие
-
-### EnglishTutorBot
-- Принимает текстовые команды через Telegram.
-- Парсит и вызывает use case'ы других модулей.
-- Не содержит доменной логики — только транспорт.
-
-### BotInitializer
-- Регистрирует бота через `TelegramBotsApi` после старта контекста.
-
 ## Команды
 
-| Команда | UseCase |
-|---------|---------|
-| `/start` | Приветствие |
-| `/help` | Список команд |
-
-Остальные команды будут добавлены.
+| Команда | UseCase | Пример |
+|---------|---------|--------|
+| `/start` | Приветствие | |
+| `/register <name>` | RegisterTeacher | `/register John` |
+| `/newstudent <name>` | CreateStudentWithDictionary | `/newstudent Иван` |
+| `/startlesson <name>` | StartLesson | `/startlesson Иван` |
+| `/add <word> <POS> <tr1; tr2>` | AddWordToDictionary + AddWordToLesson | `/add apple NOUN яблоко` |
+| `/endlesson` | EndLesson | |
+| `/help` | Помощь | |
 
 ## Зависимости
 ```java
-@ApplicationModule(allowedDependencies = {"teacher", "student", "dictionary"})
+@ApplicationModule(allowedDependencies = {
+    "teacher :: teacher", "student :: student",
+    "student :: lesson", "dictionary :: dictionary", "dictionary :: word"
+})
 ```
 
 ## Статус
-✅ Бот запущен, `/start` и `/help` работают.
+✅ Все основные команды работают.
