@@ -12,14 +12,17 @@ public class Teacher {
 
     @Identity
     private TeacherId id;
+    private String name;
 
     private Teacher() {}
 
-    public static Teacher create(TeacherId id) {
+    public static Teacher create(TeacherId id, String name) {
         Objects.requireNonNull(id, "TeacherId must not be null");
+        Objects.requireNonNull(name, "Name must not be null");
 
         var teacher = new Teacher();
         teacher.id = id;
+        teacher.name = name;
         return teacher;
     }
 }

@@ -9,8 +9,9 @@ class TeacherTest {
 
     @Test
     void shouldCreateTeacher() {
-        var teacher = Teacher.create(TeacherId.generate());
+        var teacher = Teacher.create(TeacherId.generate(), "John");
 
         assertThat(teacher.getId()).isNotNull();
+        assertThat(teacher.getName()).isEqualTo("John");
     }
 }
