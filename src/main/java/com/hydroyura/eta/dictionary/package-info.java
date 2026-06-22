@@ -4,5 +4,7 @@
  * Manages vocabulary words collected during lessons.
  * Supports word lookups, categorization, and dictionary export.
  */
-@org.springframework.modulith.ApplicationModule
+@org.springframework.modulith.ApplicationModule(
+    allowedDependencies = "shared"
+)
 package com.hydroyura.eta.dictionary;
