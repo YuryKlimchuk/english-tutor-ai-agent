@@ -4,10 +4,12 @@ import com.hydroyura.eta.student.api.lesson.AddWordToLesson;
 import com.hydroyura.eta.student.api.student.CreateStudent;
 import com.hydroyura.eta.student.api.lesson.EndLesson;
 import com.hydroyura.eta.student.api.lesson.StartLesson;
+import com.hydroyura.eta.student.api.student.StudentQuery;
 import com.hydroyura.eta.student.application.usecase.AddWordToLessonUseCase;
 import com.hydroyura.eta.student.application.usecase.CreateStudentUseCase;
 import com.hydroyura.eta.student.application.usecase.EndLessonUseCase;
 import com.hydroyura.eta.student.application.usecase.StartLessonUseCase;
+import com.hydroyura.eta.student.application.usecase.StudentQueryService;
 import com.hydroyura.eta.student.domain.student.LessonRepository;
 import com.hydroyura.eta.student.domain.student.StudentRepository;
 import org.springframework.context.annotation.Bean;
@@ -34,5 +36,10 @@ public class StudentModuleConfig {
     @Bean
     EndLesson endLesson(LessonRepository repository) {
         return new EndLessonUseCase(repository);
+    }
+
+    @Bean
+    StudentQuery studentQuery(StudentRepository studentRepository) {
+        return new StudentQueryService(studentRepository);
     }
 }

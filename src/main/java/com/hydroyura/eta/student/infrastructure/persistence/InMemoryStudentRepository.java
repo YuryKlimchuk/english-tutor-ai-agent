@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
@@ -23,5 +24,12 @@ public class InMemoryStudentRepository implements StudentRepository {
     @Override
     public Optional<Student> findById(StudentId id) {
         return Optional.ofNullable(store.get(id));
+    }
+
+    @Override
+    public boolean existsByNameInIds(Set<StudentId> ids, String name) {
+        return ids.stream()
+            .map(store::get)
+            .anyMatch(s -> s != null && s.getName().equalsIgnoreCase(name));
     }
 }

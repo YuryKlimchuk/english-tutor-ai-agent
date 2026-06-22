@@ -4,6 +4,7 @@ import com.hydroyura.eta.dictionary.api.dictionary.CreateDictionary;
 import com.hydroyura.eta.student.api.student.CreateStudent;
 import com.hydroyura.eta.dictionary.api.dictionary.CreateDictionary;
 import com.hydroyura.eta.student.api.student.CreateStudent;
+import com.hydroyura.eta.student.api.student.StudentQuery;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionary;
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacher;
 import com.hydroyura.eta.teacher.application.usecase.CreateStudentWithDictionaryUseCase;
@@ -23,9 +24,10 @@ public class TeacherModuleConfig {
     @Bean
     CreateStudentWithDictionary createStudentWithDictionary(
         TeacherRepository teacherRepository,
+        StudentQuery studentQuery,
         CreateDictionary createDictionary,
         CreateStudent createStudent
     ) {
-        return new CreateStudentWithDictionaryUseCase(teacherRepository, createDictionary, createStudent);
+        return new CreateStudentWithDictionaryUseCase(teacherRepository, studentQuery, createDictionary, createStudent);
     }
 }

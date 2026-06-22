@@ -6,6 +6,10 @@ import com.hydroyura.eta.dictionary.api.dictionary.DictionaryId;
 import com.hydroyura.eta.student.api.student.CreateStudent;
 import com.hydroyura.eta.student.api.student.CreateStudentCommand;
 import com.hydroyura.eta.student.api.student.StudentId;
+import com.hydroyura.eta.student.api.student.StudentQuery;
+import com.hydroyura.eta.student.api.student.StudentExistsByNameQuery;
+import com.hydroyura.eta.student.domain.student.Student;
+import com.hydroyura.eta.student.domain.student.StudentRepository;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionaryCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,15 +30,23 @@ class CreateStudentWithDictionaryUseCaseTest {
 
     private CreateStudentWithDictionaryUseCase useCase;
     private StubTeacherRepository teacherRepository;
+    private StubStudentRepository studentRepository;
+    private StudentQuery studentQuery;
 
     @BeforeEach
     void setUp() {
         teacherRepository = new StubTeacherRepository();
+        studentRepository = new StubStudentRepository();
+        studentQuery = query -> studentRepository.existsByNameInIds(query.studentIds(), query.name());
 
         var createDictionary = (CreateDictionary) cmd -> DictionaryId.generate();
-        var createStudent = (CreateStudent) cmd -> StudentId.generate();
+        var createStudent = (CreateStudent) cmd -> {
+            var id = StudentId.generate();
+            studentRepository.save(Student.create(id, cmd.dictionaryId(), cmd.name()));
+            return id;
+        };
 
-        useCase = new CreateStudentWithDictionaryUseCase(teacherRepository, createDictionary, createStudent);
+        useCase = new CreateStudentWithDictionaryUseCase(teacherRepository, studentQuery, createDictionary, createStudent);
     }
 
     @Test
@@ -60,6 +73,23 @@ class CreateStudentWithDictionaryUseCaseTest {
             .hasMessageContaining("Teacher not found");
     }
 
+    @Test
+    void shouldRejectDuplicateStudentName() {
+        var teacherId = TeacherId.generate();
+        var teacher = Teacher.create(teacherId, "John");
+        teacher.getIdentifiers().put(IdentifierType.TELEGRAM, 123L);
+        var existingStudent = Student.create(StudentId.generate(), DictionaryId.generate(), "Иван");
+        studentRepository.save(existingStudent);
+        teacher.addStudent(existingStudent.getId());
+        teacherRepository.save(teacher);
+
+        var cmd = new CreateStudentWithDictionaryCommand(teacherId, "Иван", "Словарь");
+
+        assertThatThrownBy(() -> useCase.execute(cmd))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("already exists");
+    }
+
     // --- stub ---
 
     static class StubTeacherRepository implements TeacherRepository {
@@ -69,6 +99,16 @@ class CreateStudentWithDictionaryUseCaseTest {
         @Override public Optional<Teacher> findById(TeacherId id) { return Optional.ofNullable(store.get(id)); }
         @Override public Optional<Teacher> findByIdentifier(IdentifierType type, Object value) {
             return store.values().stream().filter(t -> value.equals(t.getIdentifiers().get(type))).findFirst();
+        }
+    }
+
+    static class StubStudentRepository implements StudentRepository {
+        private final Map<StudentId, Student> store = new HashMap<>();
+
+        @Override public Student save(Student s) { store.put(s.getId(), s); return s; }
+        @Override public Optional<Student> findById(StudentId id) { return Optional.ofNullable(store.get(id)); }
+        @Override public boolean existsByNameInIds(Set<StudentId> ids, String name) {
+            return ids.stream().map(store::get).anyMatch(s -> s != null && s.getName().equalsIgnoreCase(name));
         }
     }
 }

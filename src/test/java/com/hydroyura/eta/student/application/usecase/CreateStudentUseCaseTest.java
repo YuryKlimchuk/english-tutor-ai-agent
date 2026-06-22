@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -68,6 +69,11 @@ class CreateStudentUseCaseTest {
         @Override
         public Optional<Student> findById(StudentId id) {
             return Optional.ofNullable(store.get(id));
+        }
+
+        @Override
+        public boolean existsByNameInIds(Set<StudentId> ids, String name) {
+            return ids.stream().map(store::get).anyMatch(s -> s != null && s.getName().equalsIgnoreCase(name));
         }
     }
 }
