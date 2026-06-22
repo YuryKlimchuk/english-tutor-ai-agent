@@ -1,5 +1,6 @@
 package com.hydroyura.eta.teacher.domain.teacher;
 
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import org.junit.jupiter.api.Test;
 

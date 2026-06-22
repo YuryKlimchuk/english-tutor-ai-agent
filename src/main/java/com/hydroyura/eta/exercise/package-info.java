@@ -5,6 +5,6 @@
  * Supports various exercise types (fill-in-the-blank, matching, translation, etc.).
  */
 @org.springframework.modulith.ApplicationModule(
-    allowedDependencies = "dictionary"
+    allowedDependencies = "dictionary :: dictionary"
 )
 package com.hydroyura.eta.exercise;

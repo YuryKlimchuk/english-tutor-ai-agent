@@ -1,4 +1,4 @@
-package com.hydroyura.eta.teacher.domain.teacher;
+package com.hydroyura.eta.teacher.api.teacher;
 
 public enum IdentifierType {
     TELEGRAM(Long.class);

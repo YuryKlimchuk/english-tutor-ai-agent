@@ -4,10 +4,10 @@ import com.hydroyura.eta.teacher.api.teacher.RegisterTeacher;
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacherCommand;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionary;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionaryCommand;
+import com.hydroyura.eta.teacher.api.teacher.FindTeacher;
+import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import com.hydroyura.eta.student.api.lesson.StartLesson;
 import com.hydroyura.eta.student.api.lesson.StartLessonCommand;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
-import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
     private final RegisterTeacher registerTeacher;
     private final CreateStudentWithDictionary createStudentWithDictionary;
     private final StartLesson startLesson;
-    private final TeacherRepository teacherRepository;
+    private final FindTeacher findTeacher;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
@@ -32,14 +32,14 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         RegisterTeacher registerTeacher,
         CreateStudentWithDictionary createStudentWithDictionary,
         StartLesson startLesson,
-        TeacherRepository teacherRepository
+        FindTeacher findTeacher
     ) {
         super(botToken);
         this.botUsername = botUsername;
         this.registerTeacher = registerTeacher;
         this.createStudentWithDictionary = createStudentWithDictionary;
         this.startLesson = startLesson;
-        this.teacherRepository = teacherRepository;
+        this.findTeacher = findTeacher;
     }
 
     @Override
@@ -49,9 +49,7 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (!update.hasMessage() || !update.getMessage().hasText()) {
-            return;
-        }
+        if (!update.hasMessage() || !update.getMessage().hasText()) return;
 
         var msg = update.getMessage();
         var chatId = msg.getChatId();
@@ -61,86 +59,66 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
 
         try {
             var response = handleCommand(chatId, text);
-            if (response != null) {
-                sendMessage(chatId, response);
-            }
+            if (response != null) sendMessage(chatId, response);
         } catch (Exception e) {
-            log.error("Error handling command", e);
+            log.error("Error", e);
             sendMessage(chatId, "❌ " + e.getMessage());
         }
     }
 
     private String handleCommand(Long chatId, String text) {
-        if (text.startsWith("/start")) {
-            return "Welcome! /register <name> — register as teacher";
-        }
-        if (text.startsWith("/register")) {
-            return handleRegister(chatId, text);
-        }
-        if (text.startsWith("/newstudent")) {
-            return handleNewStudent(chatId, text);
-        }
-        if (text.startsWith("/startlesson")) {
-            return handleStartLesson(chatId, text);
-        }
-        if (text.equals("/help")) {
-            return helpText();
-        }
+        if (text.startsWith("/start")) return handleStart(chatId);
+        if (text.startsWith("/register")) return handleRegister(chatId, text);
+        if (text.startsWith("/newstudent")) return handleNewStudent(chatId, text);
+        if (text.startsWith("/startlesson")) return handleStartLesson(chatId, text);
+        if (text.equals("/help")) return helpText();
         return "Unknown command. /help";
     }
 
-    private String handleRegister(Long chatId, String text) {
-        var existing = teacherRepository.findByIdentifier(IdentifierType.TELEGRAM, chatId);
+    private String handleStart(Long chatId) {
+        var existing = findTeacher.findByTelegramChatId(chatId);
         if (existing.isPresent()) {
-            return "Already registered as " + existing.get().getName();
+            return "Welcome back!\n/newstudent <name> — create a student";
         }
+        return "Welcome! /register <name> — register as teacher";
+    }
+
+    private String handleRegister(Long chatId, String text) {
+        var existing = findTeacher.findByTelegramChatId(chatId);
+        if (existing.isPresent()) return "Already registered!";
 
         var parts = text.split(" ", 2);
         if (parts.length < 2) return "Usage: /register <name>";
 
-        var name = parts[1].trim();
-        registerTeacher.execute(new RegisterTeacherCommand(chatId, name));
-        return "✅ Registered as " + name;
+        var teacherId = registerTeacher.execute(new RegisterTeacherCommand(chatId, parts[1].trim()));
+        return "✅ Registered! /newstudent <name>";
     }
 
     private String handleNewStudent(Long chatId, String text) {
-        var teacher = teacherRepository.findByIdentifier(IdentifierType.TELEGRAM, chatId);
-        if (teacher.isEmpty()) return "Register first: /register <name>";
+        var teacherId = findTeacher.findByTelegramChatId(chatId);
+        if (teacherId.isEmpty()) return "Register first: /register <name>";
 
         var parts = text.split(" ", 2);
         if (parts.length < 2) return "Usage: /newstudent <name>";
 
         var name = parts[1].trim();
         createStudentWithDictionary.execute(
-            new CreateStudentWithDictionaryCommand(teacher.get().getId(), name, name + "'s Dictionary"));
+            new CreateStudentWithDictionaryCommand(teacherId.get(), name, name + "'s Dictionary"));
         return "✅ Student " + name + " created";
     }
 
     private String handleStartLesson(Long chatId, String text) {
-        var teacher = teacherRepository.findByIdentifier(IdentifierType.TELEGRAM, chatId);
-        if (teacher.isEmpty()) return "Register first: /register <name>";
-
-        var parts = text.split(" ", 2);
-        if (parts.length < 2) return "Usage: /startlesson <student name>";
-
-        // TODO: find student by name
+        var teacherId = findTeacher.findByTelegramChatId(chatId);
+        if (teacherId.isEmpty()) return "Register first: /register <name>";
         return "Not implemented yet";
     }
 
     private String helpText() {
-        return """
-            /register <name> — Register
-            /newstudent <name> — Create student
-            /startlesson <name> — Start lesson
-            /help — Help
-            """;
+        return "/register <name> — Register\n/newstudent <name> — Create student\n/help";
     }
 
     private void sendMessage(Long chatId, String text) {
-        try {
-            execute(new SendMessage(chatId.toString(), text));
-        } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
-        }
+        try { execute(new SendMessage(chatId.toString(), text)); }
+        catch (TelegramApiException e) { log.error("Send failed", e); }
     }
 }

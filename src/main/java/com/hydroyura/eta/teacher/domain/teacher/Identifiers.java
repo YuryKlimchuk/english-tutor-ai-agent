@@ -1,5 +1,6 @@
 package com.hydroyura.eta.teacher.domain.teacher;
 
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

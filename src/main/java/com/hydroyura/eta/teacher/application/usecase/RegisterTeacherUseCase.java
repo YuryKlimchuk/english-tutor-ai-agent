@@ -5,7 +5,7 @@ import com.hydroyura.eta.teacher.api.teacher.RegisterTeacherCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Identifiers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

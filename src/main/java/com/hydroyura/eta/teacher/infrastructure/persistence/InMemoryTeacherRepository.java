@@ -1,7 +1,7 @@
 package com.hydroyura.eta.teacher.infrastructure.persistence;
 
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import org.springframework.stereotype.Repository;

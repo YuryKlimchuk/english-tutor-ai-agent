@@ -2,7 +2,7 @@ package com.hydroyura.eta.teacher.application.usecase;
 
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacherCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import org.junit.jupiter.api.BeforeEach;

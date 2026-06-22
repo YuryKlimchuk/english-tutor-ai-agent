@@ -4,6 +4,6 @@
  * Manages teacher profiles and authentication.
  */
 @org.springframework.modulith.ApplicationModule(
-    allowedDependencies = {"dictionary", "student"}
+    allowedDependencies = {"dictionary :: dictionary", "student :: student", "student :: lesson"}
 )
 package com.hydroyura.eta.teacher;

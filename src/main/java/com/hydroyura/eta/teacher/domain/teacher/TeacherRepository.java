@@ -1,7 +1,7 @@
 package com.hydroyura.eta.teacher.domain.teacher;
 
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import java.util.Optional;
 
 public interface TeacherRepository {

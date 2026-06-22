@@ -12,7 +12,7 @@ import com.hydroyura.eta.student.domain.student.Student;
 import com.hydroyura.eta.student.domain.student.StudentRepository;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionaryCommand;
 import com.hydroyura.eta.teacher.api.teacher.TeacherId;
-import com.hydroyura.eta.teacher.domain.teacher.IdentifierType;
+import com.hydroyura.eta.teacher.api.teacher.IdentifierType;
 import com.hydroyura.eta.teacher.domain.teacher.Teacher;
 import com.hydroyura.eta.teacher.domain.teacher.TeacherRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +53,7 @@ class CreateStudentWithDictionaryUseCaseTest {
     void shouldCreateStudentAndAddToTeacher() {
         var teacherId = TeacherId.generate();
         var teacher = com.hydroyura.eta.teacher.domain.teacher.Teacher.create(teacherId, "John");
-        teacher.getIdentifiers().put(com.hydroyura.eta.teacher.domain.teacher.IdentifierType.TELEGRAM, 123L);
+        teacher.getIdentifiers().put(com.hydroyura.eta.teacher.api.teacher.IdentifierType.TELEGRAM, 123L);
         teacherRepository.save(teacher);
 
         var cmd = new CreateStudentWithDictionaryCommand(teacherId, "Иван", "Словарь Ивана");
