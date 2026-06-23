@@ -1,6 +1,6 @@
 package com.hydroyura.eta.telegram.infrastructure.bot;
 
-import com.hydroyura.eta.telegram.application.StateMachineService;
+import com.hydroyura.eta.telegram.infrastructure.bot.statemachine.StateMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,16 +16,16 @@ import java.util.Objects;
 public class EnglishTutorBot extends TelegramLongPollingBot {
 
     private final String botUsername;
-    private final StateMachineService stateMachineService;
+    private final StateMachine stateMachine;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
         @Value("${telegram.bot.username}") String botUsername,
-        StateMachineService stateMachineService
+        StateMachine stateMachine
     ) {
         super(botToken);
         this.botUsername = botUsername;
-        this.stateMachineService = stateMachineService;
+        this.stateMachine = stateMachine;
     }
 
     @Override public String getBotUsername() { return botUsername; }
@@ -37,8 +37,9 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         var chatId = msg.getChatId();
         var text = msg.getText().trim();
         log.info("[{}] {}", chatId, text);
+
         try {
-            var response = stateMachineService.process(chatId, text);
+            var response = stateMachine.process(chatId, text);
             if (Objects.nonNull(response)) sendMessage(chatId, response);
         } catch (Exception e) {
             log.error("Error", e);
