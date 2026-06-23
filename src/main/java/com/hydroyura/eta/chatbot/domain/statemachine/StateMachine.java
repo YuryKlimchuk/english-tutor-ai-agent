@@ -4,14 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class StateMachine {
 
     private final Long chatId;
-
     private State state;
-
     private Context context;
+
+    public StateMachine(Long chatId) {
+        this.chatId = chatId;
+        this.state = State.UNREGISTERED;
+        this.context = null;
+    }
 
 
     private void updateState(State newState) {

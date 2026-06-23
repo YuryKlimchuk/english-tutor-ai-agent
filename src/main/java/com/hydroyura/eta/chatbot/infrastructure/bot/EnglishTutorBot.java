@@ -1,6 +1,6 @@
-package com.hydroyura.eta.telegram.infrastructure.bot;
+package com.hydroyura.eta.chatbot.infrastructure.bot;
 
-import com.hydroyura.eta.telegram.infrastructure.bot.statemachine.StateMachine;
+import com.hydroyura.eta.chatbot.application.StateMachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,19 +16,20 @@ import java.util.Objects;
 public class EnglishTutorBot extends TelegramLongPollingBot {
 
     private final String botUsername;
-    private final StateMachine stateMachine;
+    private final StateMachineService stateMachineService;
 
     public EnglishTutorBot(
         @Value("${telegram.bot.token}") String botToken,
         @Value("${telegram.bot.username}") String botUsername,
-        StateMachine stateMachine
+        StateMachineService stateMachineService
     ) {
         super(botToken);
         this.botUsername = botUsername;
-        this.stateMachine = stateMachine;
+        this.stateMachineService = stateMachineService;
     }
 
-    @Override public String getBotUsername() { return botUsername; }
+    @Override
+    public String getBotUsername() { return botUsername; }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -39,16 +40,19 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         log.info("[{}] {}", chatId, text);
 
         try {
-            var response = stateMachine.process(chatId, text);
+            var response = stateMachineService.process(chatId, text);
             if (Objects.nonNull(response)) sendMessage(chatId, response);
         } catch (Exception e) {
-            log.error("Error", e);
-            sendMessage(chatId, "❌ " + e.getMessage());
+            log.error("Error processing message", e);
+            sendMessage(chatId, "❌ Something went wrong");
         }
     }
 
     private void sendMessage(Long chatId, String text) {
-        try { execute(new SendMessage(chatId.toString(), text)); }
-        catch (TelegramApiException e) { log.error("Send failed", e); }
+        try {
+            execute(new SendMessage(chatId.toString(), text));
+        } catch (TelegramApiException e) {
+            log.error("Failed to send message", e);
+        }
     }
 }

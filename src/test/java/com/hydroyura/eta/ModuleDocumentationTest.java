@@ -1,10 +1,5 @@
 package com.hydroyura.eta;
 
-import com.structurizr.Workspace;
-import com.structurizr.model.Model;
-import com.structurizr.model.SoftwareSystem;
-import com.structurizr.view.ViewSet;
-import com.structurizr.view.ComponentView;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 
