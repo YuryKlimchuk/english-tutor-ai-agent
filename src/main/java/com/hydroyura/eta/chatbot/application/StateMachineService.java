@@ -23,4 +23,10 @@ public class StateMachineService {
         repository.save(sm);
         return response;
     }
+
+    public com.hydroyura.eta.chatbot.domain.statemachine.State getState(Long chatId) {
+        return repository.findByChatId(chatId)
+            .map(StateMachine::getState)
+            .orElse(com.hydroyura.eta.chatbot.domain.statemachine.State.UNREGISTERED);
+    }
 }
