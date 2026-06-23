@@ -13,9 +13,11 @@ import com.hydroyura.eta.student.api.student.StudentQuery;
 import com.hydroyura.eta.teacher.api.teacher.CreateStudentWithDictionary;
 import com.hydroyura.eta.teacher.api.teacher.FindTeacher;
 import com.hydroyura.eta.teacher.api.teacher.RegisterTeacher;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CommandDispatcher {
 
     private final RegisterTeacher registerTeacher;
@@ -26,14 +28,6 @@ public class CommandDispatcher {
     private final EndLesson endLesson;
     private final FindTeacher findTeacher;
     private final StudentQuery studentQuery;
-
-    public CommandDispatcher(RegisterTeacher r, CreateStudentWithDictionary c, StartLesson s,
-                             AddWordToDictionary awd, AddWordToLesson awl, EndLesson e,
-                             FindTeacher f, StudentQuery sq) {
-        this.registerTeacher = r; this.createStudentWithDictionary = c; this.startLesson = s;
-        this.addWordToDictionary = awd; this.addWordToLesson = awl; this.endLesson = e;
-        this.findTeacher = f; this.studentQuery = sq;
-    }
 
     public Command dispatch(String text) {
         if (text.equals("/start")) return new StartCmd(findTeacher);
