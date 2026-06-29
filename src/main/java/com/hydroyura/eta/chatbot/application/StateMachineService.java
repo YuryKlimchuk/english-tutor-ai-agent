@@ -15,6 +15,13 @@ public class StateMachineService {
     public String process(Long chatId, String text) {
         var sm = repository.findByChatId(chatId)
             .orElseGet(() -> new StateMachine(chatId));
+
+        // If there's a pending command awaiting user input
+        if (sm.getPendingCommand() != null && !text.startsWith("/")) {
+            text = sm.getPendingCommand() + " " + text;
+            sm.clearPendingCommand();
+        }
+
         var command = dispatcher.dispatch(text);
         var response = sm.applyCommand(command);
         repository.save(sm);

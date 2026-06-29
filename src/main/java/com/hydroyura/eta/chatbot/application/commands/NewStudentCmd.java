@@ -22,8 +22,10 @@ public class NewStudentCmd implements Command {
 
     @Override
     public ExecutionResult execute(StateMachine sm) {
-        if (name == null || name.isEmpty())
-            return new ExecutionResult(sm.getState(), sm.getContext(), "Usage: /newstudent <name>");
+        if (name == null || name.isEmpty()) {
+            sm.setPendingCommand("/newstudent");
+            return new ExecutionResult(sm.getState(), sm.getContext(), "Enter student name:");
+        }
         var tid = findTeacher.findByTelegramChatId(sm.getChatId()).orElseThrow();
         createStudentWithDictionary.execute(
             new CreateStudentWithDictionaryCommand(tid, name, name + "'s Dictionary"));

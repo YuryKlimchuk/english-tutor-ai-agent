@@ -32,8 +32,10 @@ public class AddWordCmd implements Command {
 
     @Override
     public ExecutionResult execute(StateMachine sm) {
-        if (word == null || pos == null || translations.isEmpty())
-            return new ExecutionResult(sm.getState(), sm.getContext(), "Usage: /add <word> <POS> <tr1; tr2>");
+        if (word == null || pos == null || translations.isEmpty()) {
+            sm.setPendingCommand("/add");
+            return new ExecutionResult(sm.getState(), sm.getContext(), "Enter: <word> <POS> <tr1; tr2>");
+        }
         if (!(sm.getContext() instanceof LessonContext lc))
             return new ExecutionResult(sm.getState(), sm.getContext(), "No active lesson");
         var dictId = studentQuery.getDictionaryId(lc.getStudentId()).orElseThrow();

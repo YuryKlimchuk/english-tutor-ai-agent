@@ -20,9 +20,10 @@ public class RegisterCmd implements Command {
     @Override
     public ExecutionResult execute(StateMachine sm) {
         if (name == null || name.isEmpty()) {
-            return new ExecutionResult(sm.getState(), sm.getContext(), "Usage: /register <name>");
+            sm.setPendingCommand("/register");
+            return new ExecutionResult(sm.getState(), sm.getContext(), "Enter your name:");
         }
-        var result = registerTeacher.execute(new RegisterTeacherCommand(sm.getChatId(), name));
-        return new ExecutionResult(State.ACTIVE, new ActiveContext(result), "✅ Registered!");
+        registerTeacher.execute(new RegisterTeacherCommand(sm.getChatId(), name));
+        return new ExecutionResult(State.ACTIVE, new ActiveContext(null), "✅ Registered!");
     }
 }

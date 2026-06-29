@@ -28,8 +28,10 @@ public class StartLessonCmd implements Command {
 
     @Override
     public ExecutionResult execute(StateMachine sm) {
-        if (studentName == null || studentName.isEmpty())
-            return new ExecutionResult(sm.getState(), sm.getContext(), "Usage: /startlesson <name>");
+        if (studentName == null || studentName.isEmpty()) {
+            sm.setPendingCommand("/startlesson");
+            return new ExecutionResult(sm.getState(), sm.getContext(), "Enter student name:");
+        }
         var teacherId = findTeacher.findByTelegramChatId(sm.getChatId()).orElseThrow();
         var ids = findTeacher.getStudentIds(sm.getChatId());
         var sid = studentQuery.findByNameIn(new FindStudentByNameQuery(ids, studentName));

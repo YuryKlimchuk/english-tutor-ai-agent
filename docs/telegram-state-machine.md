@@ -1,36 +1,35 @@
-# TG Bot State Machine
+# Telegram Bot State Machine
 
 ## Состояния
 
-| State | Описание |
-|-------|----------|
-| `UNREGISTERED` | Пользователь открыл бота, но не зарегистрировался |
-| `ACTIVE` | Зарегистрирован, может управлять учениками и уроками |
-| `IN_LESSON` | Находится в активном уроке, может добавлять слова |
+```
+UNREGISTERED → ACTIVE → IN_LESSON → ACTIVE → ...
+```
 
-## Команды
+| State | Контекст | Допустимые команды |
+|-------|----------|-------------------|
+| `UNREGISTERED` | — | `/start`, `/register`, `/help` |
+| `ACTIVE` | `ActiveContext(teacherId)` | `/newstudent`, `/startlesson`, `/help` |
+| `IN_LESSON` | `LessonContext(teacherId, studentId, lessonId)` | `/add`, `/endlesson`, `/help` |
 
-### UNREGISTERED
-| Команда | Переход | Новое состояние |
-|---------|---------|-----------------|
-| `/register <name>` | ✅ | `ACTIVE` |
-| `/help` | ❌ | — |
-| `/start` | ❌ | — |
+## Двухфазный ввод
 
-### ACTIVE
-| Команда | Переход | Новое состояние |
-|---------|---------|-----------------|
-| `/newstudent <name>` | ❌ | — |
-| `/startlesson <name>` | ✅ | `IN_LESSON` |
-| `/mystudents` | ❌ | — |
-| `/help` | ❌ | — |
+Команды с аргументами (`/register`, `/newstudent`, `/startlesson`, `/add`) работают в два шага:
 
-### IN_LESSON
-| Команда | Переход | Новое состояние |
-|---------|---------|-----------------|
-| `/add <word> <POS> <tr>` | ❌ | — |
-| `/endlesson` | ✅ | `ACTIVE` |
-| `/help` | ❌ | — |
+```mermaid
+sequenceDiagram
+    U->>B: нажимает /register (кнопка)
+    B->>SM: process("/register")
+    SM->>SM: pendingCommand = "/register"
+    B-->>U: "Enter your name:"
+    U->>B: Yury
+    B->>SM: process("Yury")
+    SM->>SM: text = "/register Yury", clearPending
+    B-->>U: "✅ Registered!" + кнопки ACTIVE
+```
+
+1. **Кнопка** — бот сохраняет `pendingCommand` и просит ввод
+2. **Текст** — бот подставляет `pendingCommand + " " + текст` и выполняет
 
 ## Граф переходов
 
