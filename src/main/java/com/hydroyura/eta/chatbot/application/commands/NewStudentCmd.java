@@ -36,6 +36,7 @@ public class NewStudentCmd implements Command {
         if (name.isBlank()) { sm.setPendingCommand(NewStudentCmd.class); return Result.stay("Enter student name:", type()); }
         var tid = findTeacher.findByTelegramChatId(sm.getId().chatId()).orElseThrow();
         createStudentWithDictionary.execute(new CreateStudentWithDictionaryCommand(tid, name, name + "'s Dictionary"));
+        sm.clearPendingCommand();
         return Result.stay("✅ Student " + name + " created", type());
     }
 }

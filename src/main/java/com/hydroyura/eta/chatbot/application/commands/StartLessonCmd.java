@@ -43,6 +43,7 @@ public class StartLessonCmd implements Command {
         var lid = startLesson.execute(new StartLessonCommand(sid.get(), "Lesson"));
         var ctx = new Context();
         ctx.put("lessonId", lid.value());
+        sm.clearPendingCommand();
         return Result.transition("✅ Lesson started", type(), State.IN_LESSON, ctx);
     }
 }

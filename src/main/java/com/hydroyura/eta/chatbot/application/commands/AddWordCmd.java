@@ -41,6 +41,7 @@ public class AddWordCmd implements Command {
         var trs = new HashSet<>(Arrays.asList(p[2].split(";")));
         trs.removeIf(String::isBlank);
         // TODO: integrate with student's dictionary
+        sm.clearPendingCommand();
         return Result.stay("✅ \"" + p[0] + "\" added", type());
     }
 }

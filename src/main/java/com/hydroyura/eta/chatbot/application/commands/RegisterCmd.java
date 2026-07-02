@@ -41,6 +41,7 @@ public class RegisterCmd implements Command {
             return Result.stay("Enter your name:", type());
         }
         registerTeacher.execute(new RegisterTeacherCommand(sm.getId().chatId(), name));
+        sm.clearPendingCommand();
         return Result.transition("✅ Registered!", type(), State.ACTIVE, new Context());
     }
 }

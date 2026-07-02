@@ -27,7 +27,6 @@ public class StateMachineAppService {
         }
 
         var response = sm.execute(command, message);
-        sm.clearPendingCommand();
         repository.save(sm);
         return response;
     }
