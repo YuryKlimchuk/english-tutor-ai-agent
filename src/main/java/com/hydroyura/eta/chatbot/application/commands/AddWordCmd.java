@@ -13,6 +13,10 @@ import java.util.*;
 
 public class AddWordCmd implements Command {
 
+    private static final String STEP = "addWord.step";
+    private static final String WORD = "addWord.word";
+    private static final String POS = "addWord.pos";
+
     private final AddWordToDictionary addWordToDictionary;
     private final AddWordToLesson addWordToLesson;
     private final StudentQuery studentQuery;
@@ -28,21 +32,75 @@ public class AddWordCmd implements Command {
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {
-        if (sm.getPendingCommandSafely().isPresent() || !userMessage.startsWith("/add "))
-            return doAdd(sm, userMessage);
-        return doAdd(sm, userMessage.substring(5).trim());
+        // If pending already set — continue multi-step
+        if (sm.getPendingCommandSafely().isPresent())
+            return handleStep(sm, userMessage);
+
+        // If /add with data — parse it directly
+        if (userMessage.startsWith("/add "))
+            return handleStep(sm, userMessage.substring(5).trim());
+
+        // Button click: /add without args — start multi-step
+        sm.setPendingCommand(AddWordCmd.class);
+        resetContext(sm);
+        return Result.stay("Enter word:", type());
     }
 
-    private Result doAdd(StateMachine sm, String input) {
-        var p = input.split(" ", 3);
-        if (p.length < 3) { sm.setPendingCommand(AddWordCmd.class); return Result.stay("Enter: <word> <POS> <tr1; tr2>", type()); }
-        PartOfSpeech pos;
-        try { pos = PartOfSpeech.valueOf(p[1].toUpperCase()); }
-        catch (Exception e) { sm.setPendingCommand(AddWordCmd.class); return Result.stay("Invalid POS: " + p[1], type()); }
-        var trs = new HashSet<>(Arrays.asList(p[2].split(";")));
-        trs.removeIf(String::isBlank);
-        // TODO: integrate with student's dictionary
+    private Result handleStep(StateMachine sm, String input) {
+        int step = getStep(sm);
+        return switch (step) {
+            case 0 -> stepWord(sm, input);
+            case 1 -> stepPos(sm, input);
+            case 2 -> stepTranslation(sm, input);
+            default -> { sm.clearPendingCommand(); yield Result.stay("✅ Word added", type()); }
+        };
+    }
+
+    private Result stepWord(StateMachine sm, String input) {
+        if (input.isBlank()) return Result.stay("Enter word:", type());
+        sm.getContext().put(WORD, input.trim());
+        sm.getContext().put(STEP, 1);
+        return Result.stay("Enter part of speech (NOUN/VERB/ADJECTIVE):", type());
+    }
+
+    private Result stepPos(StateMachine sm, String input) {
+        try {
+            PartOfSpeech.valueOf(input.trim().toUpperCase());
+            sm.getContext().put(POS, input.trim().toUpperCase());
+            sm.getContext().put(STEP, 2);
+            return Result.stay("Enter translation:", type());
+        } catch (IllegalArgumentException e) {
+            return Result.stay("Invalid. Use NOUN, VERB or ADJECTIVE:", type());
+        }
+    }
+
+    private Result stepTranslation(StateMachine sm, String input) {
+        if (input.isBlank()) return Result.stay("Enter translation:", type());
+
+        String word = (String) sm.getContext().get(WORD);
+        String posStr = (String) sm.getContext().get(POS);
+        PartOfSpeech pos = PartOfSpeech.valueOf(posStr);
+
+        var translations = new HashSet<>(Arrays.asList(input.split(";")));
+        translations.removeIf(String::isBlank);
+
+        // TODO: integrate with student's dictionary + lesson
+        // var dictId = studentQuery.getDictionaryId(...).orElseThrow();
+        // var wid = addWordToDictionary.execute(new AddWordCommand(dictId, word, translations, pos));
+
+        resetContext(sm);
         sm.clearPendingCommand();
-        return Result.stay("✅ \"" + p[0] + "\" added", type());
+        return Result.stay("✅ \"" + word + "\" (" + pos + ") added", type());
+    }
+
+    private int getStep(StateMachine sm) {
+        Object s = sm.getContext().get(STEP);
+        return s instanceof Integer i ? i : 0;
+    }
+
+    private void resetContext(StateMachine sm) {
+        sm.getContext().put(STEP, 0);
+        sm.getContext().put(WORD, null);
+        sm.getContext().put(POS, null);
     }
 }
