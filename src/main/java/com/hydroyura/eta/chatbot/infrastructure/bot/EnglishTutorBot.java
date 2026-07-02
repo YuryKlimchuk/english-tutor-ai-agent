@@ -1,6 +1,6 @@
 package com.hydroyura.eta.chatbot.infrastructure.bot;
 
-import com.hydroyura.eta.chatbot.application.StateMachineService;
+import com.hydroyura.eta.chatbot.application.StateMachineAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,20 +19,17 @@ import java.util.Objects;
 public class EnglishTutorBot extends TelegramLongPollingBot {
 
     private final String botUsername;
-    private final StateMachineService stateMachineService;
+    private final StateMachineAppService stateMachineAppService;
 
-    public EnglishTutorBot(
-        @Value("${telegram.bot.token}") String botToken,
-        @Value("${telegram.bot.username}") String botUsername,
-        StateMachineService stateMachineService
-    ) {
+    public EnglishTutorBot(@Value("${telegram.bot.token}") String botToken,
+                           @Value("${telegram.bot.username}") String botUsername,
+                           StateMachineAppService service) {
         super(botToken);
         this.botUsername = botUsername;
-        this.stateMachineService = stateMachineService;
+        this.stateMachineAppService = service;
     }
 
-    @Override
-    public String getBotUsername() { return botUsername; }
+    @Override public String getBotUsername() { return botUsername; }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -43,39 +40,43 @@ public class EnglishTutorBot extends TelegramLongPollingBot {
         log.info("[{}] {}", chatId, text);
 
         try {
-            var response = stateMachineService.process(chatId, text);
+            var response = stateMachineAppService.handle(text, chatId);
             if (Objects.nonNull(response)) {
-                var state = stateMachineService.getState(chatId);
-                sendMessage(chatId, response, state.keyboardButtons());
+                var state = stateMachineAppService.getState(chatId);
+                var buttons = state != null
+                    ? java.util.Arrays.asList(keyboardFor(state))
+                    : new ArrayList<String>();
+                sendMessage(chatId, response, buttons);
             }
         } catch (Exception e) {
-            log.error("Error processing message", e);
+            log.error("Error", e);
             sendMessage(chatId, "❌ Something went wrong");
         }
     }
 
-    private void sendMessage(Long chatId, String text, String[] buttons) {
+    private void sendMessage(Long chatId, String text, java.util.List<String> buttons) {
         try {
             var msg = new SendMessage(chatId.toString(), text);
-            if (buttons.length > 0) {
+            if (!buttons.isEmpty()) {
                 var keyboard = new ArrayList<KeyboardRow>();
                 var row = new KeyboardRow();
-                for (var btn : buttons) { row.add(btn); }
+                for (var b : buttons) row.add(b);
                 keyboard.add(row);
-                var markup = ReplyKeyboardMarkup.builder()
-                    .keyboard(keyboard)
-                    .resizeKeyboard(true)
-                    .oneTimeKeyboard(false)
-                    .build();
-                msg.setReplyMarkup(markup);
+                msg.setReplyMarkup(ReplyKeyboardMarkup.builder().keyboard(keyboard).resizeKeyboard(true).build());
             }
             execute(msg);
-        } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
-        }
+        } catch (TelegramApiException e) { log.error("Send failed", e); }
+    }
+
+    private String[] keyboardFor(com.hydroyura.eta.chatbot.domain.statemachine.State state) {
+        return switch (state) {
+            case NOT_REGISTER -> new String[]{"/start", "/register", "/help"};
+            case ACTIVE -> new String[]{"/newstudent", "/startlesson", "/help"};
+            case IN_LESSON -> new String[]{"/add", "/endlesson", "/help"};
+        };
     }
 
     private void sendMessage(Long chatId, String text) {
-        sendMessage(chatId, text, new String[0]);
+        sendMessage(chatId, text, new ArrayList<>());
     }
 }

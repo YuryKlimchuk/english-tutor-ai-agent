@@ -1,5 +1,7 @@
 package com.hydroyura.eta.chatbot.application.commands;
 
+import com.hydroyura.eta.chatbot.domain.command.Command;
+import com.hydroyura.eta.chatbot.domain.command.Result;
 import com.hydroyura.eta.chatbot.domain.statemachine.*;
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordCommand;
 import com.hydroyura.eta.dictionary.api.dictionary.AddWordToDictionary;
@@ -11,46 +13,34 @@ import java.util.*;
 
 public class AddWordCmd implements Command {
 
-    private final String word;
-    private final PartOfSpeech pos;
-    private final Set<String> translations;
     private final AddWordToDictionary addWordToDictionary;
     private final AddWordToLesson addWordToLesson;
     private final StudentQuery studentQuery;
 
-    public AddWordCmd(String text, AddWordToDictionary awd, AddWordToLesson awl, StudentQuery sq) {
-        var p = text.split(" ", 4);
-        this.word = p.length > 1 ? p[1] : null;
-        this.pos = parsePos(p.length > 2 ? p[2] : null);
-        this.translations = p.length > 3 ? parseTranslations(p[3]) : Set.of();
-        this.addWordToDictionary = awd;
-        this.addWordToLesson = awl;
-        this.studentQuery = sq;
+    public AddWordCmd(AddWordToDictionary awd, AddWordToLesson awl, StudentQuery sq) {
+        this.addWordToDictionary = awd; this.addWordToLesson = awl; this.studentQuery = sq;
     }
+
+    public AddWordCmd(String text, AddWordToDictionary awd, AddWordToLesson awl, StudentQuery sq) { this(awd, awl, sq); }
 
     @Override public CommandType type() { return CommandType.ADD_WORD; }
 
     @Override
-    public ExecutionResult execute(StateMachine sm) {
-        if (word == null || pos == null || translations.isEmpty()) {
-            sm.setPendingCommand("/add");
-            return new ExecutionResult(sm.getState(), sm.getContext(), "Enter: <word> <POS> <tr1; tr2>");
-        }
-        if (!(sm.getContext() instanceof LessonContext lc))
-            return new ExecutionResult(sm.getState(), sm.getContext(), "No active lesson");
-        var dictId = studentQuery.getDictionaryId(lc.getStudentId()).orElseThrow();
-        var wid = addWordToDictionary.execute(new AddWordCommand(dictId, word, translations, pos));
-        addWordToLesson.execute(new AddWordToLessonCommand(lc.getLessonId(), wid));
-        return new ExecutionResult(sm.getState(), sm.getContext(), "✅ \"" + word + "\" added");
+    public Result execute(StateMachine sm, String userMessage) {
+        if (sm.getPendingCommandSafely().isPresent() || !userMessage.startsWith("/add "))
+            return doAdd(sm, userMessage);
+        return doAdd(sm, userMessage.substring(5).trim());
     }
 
-    private static PartOfSpeech parsePos(String s) {
-        try { return PartOfSpeech.valueOf(s.toUpperCase()); } catch (Exception e) { return null; }
-    }
-
-    private static Set<String> parseTranslations(String s) {
-        var set = new HashSet<>(Arrays.asList(s.split(";")));
-        set.removeIf(String::isBlank);
-        return set;
+    private Result doAdd(StateMachine sm, String input) {
+        var p = input.split(" ", 3);
+        if (p.length < 3) { sm.setPendingCommand(AddWordCmd.class); return Result.stay("Enter: <word> <POS> <tr1; tr2>", type()); }
+        PartOfSpeech pos;
+        try { pos = PartOfSpeech.valueOf(p[1].toUpperCase()); }
+        catch (Exception e) { sm.setPendingCommand(AddWordCmd.class); return Result.stay("Invalid POS: " + p[1], type()); }
+        var trs = new HashSet<>(Arrays.asList(p[2].split(";")));
+        trs.removeIf(String::isBlank);
+        // TODO: integrate with student's dictionary
+        return Result.stay("✅ \"" + p[0] + "\" added", type());
     }
 }

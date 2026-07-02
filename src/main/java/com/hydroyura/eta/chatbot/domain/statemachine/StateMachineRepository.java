@@ -4,7 +4,8 @@ import java.util.Optional;
 
 public interface StateMachineRepository {
 
-    Optional<StateMachine> findByChatId(Long chatId);
+    Optional<StateMachine> findById(StateMachineId id);
 
     void save(StateMachine stateMachine);
+
 }

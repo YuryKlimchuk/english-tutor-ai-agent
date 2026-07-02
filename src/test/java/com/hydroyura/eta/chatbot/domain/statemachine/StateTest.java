@@ -7,16 +7,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StateTest {
 
     @Test
-    void unregisteredAllowsStartRegisterHelp() {
-        assertThat(State.UNREGISTERED.allows(CommandType.START)).isTrue();
-        assertThat(State.UNREGISTERED.allows(CommandType.REGISTER)).isTrue();
-        assertThat(State.UNREGISTERED.allows(CommandType.HELP)).isTrue();
+    void notRegisteredAllowsStartRegisterHelp() {
+        assertThat(State.NOT_REGISTER.allows(CommandType.START)).isTrue();
+        assertThat(State.NOT_REGISTER.allows(CommandType.REGISTER)).isTrue();
+        assertThat(State.NOT_REGISTER.allows(CommandType.HELP)).isTrue();
     }
 
     @Test
-    void unregisteredRejectsOthers() {
-        assertThat(State.UNREGISTERED.allows(CommandType.ADD_WORD)).isFalse();
-        assertThat(State.UNREGISTERED.allows(CommandType.END_LESSON)).isFalse();
+    void notRegisteredRejectsOthers() {
+        assertThat(State.NOT_REGISTER.allows(CommandType.END_LESSON)).isFalse();
+        assertThat(State.NOT_REGISTER.allows(CommandType.ADD_WORD)).isFalse();
     }
 
     @Test

@@ -1,31 +1,56 @@
 package com.hydroyura.eta.chatbot.domain.statemachine;
 
+import com.hydroyura.eta.chatbot.domain.command.Command;
+import com.hydroyura.eta.chatbot.domain.command.Result;
 import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Optional;
 
 @Getter
-public class StateMachine {
+public final class StateMachine {
 
-    private final Long chatId;
+    private final StateMachineId id;
     private State state;
-    private Context context;
-    private String pendingCommand;
+    @Setter
+    private Class<? extends Command> pendingCommand;
+    private Context context = new Context();
 
-    public StateMachine(Long chatId) {
-        this.chatId = chatId;
-        this.state = State.UNREGISTERED;
-        this.context = null;
+    private StateMachine(StateMachineId id) {
+        this.id = id;
+        this.state = State.NOT_REGISTER;
     }
 
-    private void updateState(State newState) { this.state = newState; }
-    private void updateContext(Context context) { this.context = context; }
+    public static StateMachine ofDefaults(StateMachineId id) {
+        return new StateMachine(id);
+    }
 
-    public void setPendingCommand(String command) { this.pendingCommand = command; }
-    public void clearPendingCommand() { this.pendingCommand = null; }
-
-    public String applyCommand(Command command) {
-        var result = command.execute(this);
-        updateContext(result.context());
-        updateState(result.state());
+    public String execute(Command command, String userMessage) {
+        if (!state.allows(command.type())) {
+            return "Command not available in state: " + state + ". /help";
+        }
+        var result = command.execute(this, userMessage);
+        var newState = result.state();
+        if (newState != null && newState != this.state) {
+            this.state = newState;
+        }
+        result.context().ifPresent(ctx -> this.context = ctx);
         return result.message();
+    }
+
+    public Optional<Class<? extends Command>> getPendingCommandSafely() {
+        return Optional.ofNullable(pendingCommand);
+    }
+
+    public void clearPendingCommand() {
+        this.pendingCommand = null;
+    }
+
+    public String[] keyboardButtons() {
+        return switch (state) {
+            case NOT_REGISTER -> new String[]{"/start", "/register", "/help"};
+            case ACTIVE -> new String[]{"/newstudent", "/startlesson", "/help"};
+            case IN_LESSON -> new String[]{"/add", "/endlesson", "/help"};
+        };
     }
 }
