@@ -1,7 +1,6 @@
 package com.hydroyura.eta.chatbot.domain.statemachine;
 
 import com.hydroyura.eta.chatbot.domain.command.Command;
-import com.hydroyura.eta.chatbot.domain.command.Result;
 import lombok.Getter;
 import lombok.Setter;
 
