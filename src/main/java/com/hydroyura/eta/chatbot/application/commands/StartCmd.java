@@ -12,6 +12,7 @@ public class StartCmd implements Command {
     public StartCmd(FindTeacher findTeacher) { this.findTeacher = findTeacher; }
 
     @Override public CommandType type() { return CommandType.START; }
+    @Override public boolean matches(String text) { return text.equals("/start"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

@@ -24,6 +24,7 @@ public class AddWordCmd implements Command {
     public AddWordCmd(String text, AddWordToDictionary awd, AddWordToLesson awl, StudentQuery sq) { this(awd, awl, sq); }
 
     @Override public CommandType type() { return CommandType.ADD_WORD; }
+    @Override public boolean matches(String text) { return text.startsWith("/add"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

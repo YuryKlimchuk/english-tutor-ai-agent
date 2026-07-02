@@ -20,6 +20,7 @@ public class RegisterCmd implements Command {
     }
 
     @Override public CommandType type() { return CommandType.REGISTER; }
+    @Override public boolean matches(String text) { return text.startsWith("/register"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

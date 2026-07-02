@@ -22,6 +22,7 @@ public class StartLessonCmd implements Command {
     public StartLessonCmd(String text, StartLesson s, FindTeacher f, StudentQuery sq) { this(s, f, sq); }
 
     @Override public CommandType type() { return CommandType.START_LESSON; }
+    @Override public boolean matches(String text) { return text.startsWith("/startlesson"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

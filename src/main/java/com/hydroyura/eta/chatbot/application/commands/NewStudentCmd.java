@@ -19,6 +19,7 @@ public class NewStudentCmd implements Command {
     public NewStudentCmd(String text, CreateStudentWithDictionary c, FindTeacher f) { this(c, f); }
 
     @Override public CommandType type() { return CommandType.NEW_STUDENT; }
+    @Override public boolean matches(String text) { return text.startsWith("/newstudent"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

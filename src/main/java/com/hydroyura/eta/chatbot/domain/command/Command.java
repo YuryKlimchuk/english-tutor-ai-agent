@@ -8,4 +8,6 @@ public interface Command {
     CommandType type();
 
     Result execute(StateMachine sm, String userMessage);
+
+    default boolean matches(String text) { return false; }
 }

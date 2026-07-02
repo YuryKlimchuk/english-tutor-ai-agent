@@ -7,6 +7,7 @@ import com.hydroyura.eta.chatbot.domain.statemachine.*;
 public class HelpCmd implements Command {
 
     @Override public CommandType type() { return CommandType.HELP; }
+    @Override public boolean matches(String text) { return text.equals("/help"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {

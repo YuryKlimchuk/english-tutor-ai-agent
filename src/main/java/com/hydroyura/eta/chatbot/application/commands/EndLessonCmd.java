@@ -15,6 +15,7 @@ public class EndLessonCmd implements Command {
     public EndLessonCmd(EndLesson endLesson) { this.endLesson = endLesson; }
 
     @Override public CommandType type() { return CommandType.END_LESSON; }
+    @Override public boolean matches(String text) { return text.equals("/endlesson"); }
 
     @Override
     public Result execute(StateMachine sm, String userMessage) {
